@@ -130,7 +130,7 @@ define deploy::file (
   exec { "download_${file}":
     command         => "${fetch} ${fetch_options} ${deploy::tempdir}/${file} ${url}/${file}",
     creates         => "${deploy::tempdir}/${file}",
-    unless          => "test -d ${target}",
+    #unless          => "test -d ${deploy::tempdir}",
     timeout         => $download_timout,
     environment     => $env,
     require         => [ Class['deploy'], File[$deploy::tempdir], ],
@@ -149,8 +149,7 @@ define deploy::file (
       strip_level     => $strip_level,
       owner           => $owner,
       group           => $group,
-      require         => Exec["download_${file}"],
-      notify          => Exec["cleanup_${file}"]
+      require         => Exec["download_${file}"];
     }
   } elsif $file =~ /.zip$/ {
     $_command = $command ? {
@@ -163,18 +162,10 @@ define deploy::file (
       command_options => $command_options,
       owner           => $owner,
       group           => $group,
-      require         => Exec["download_${file}"],
-      notify          => Exec["cleanup_${file}"]
+      require         => Exec["download_${file}"];
     }
   } else {
     fail('Unsupported file type')
-  }
-
-  # Remove the downloaded files after they have been uncompressed.
-  exec { "cleanup_${file}":
-    command     => "rm -f ${deploy::tempdir}/${file}",
-    onlyif      => "test -f ${deploy::tempdir}/${file}",
-    refreshonly => true,
   }
 
 }
