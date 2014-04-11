@@ -84,10 +84,11 @@ define deploy::untar (
   $_cmd = "${command} ${dl_cmd_options} ${file} -C ${target} ${strip_options} --no-same-owner"
   exec { "untarball_${file}":
     command     => $_cmd,
-    subscribe   => File[$target],
-    refreshonly => true,
+    #subscribe   => File[$target],
+    #refreshonly => true,
     user        => $owner,
     group       => $group,
+    unless      => "find ${target} -maxdepth 0 ! -empty |grep -q '${target}'",
     require     => [ File[$target] ];
   }
 }
